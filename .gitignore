@@ -1,1 +1,6 @@
+__pycache__/
+
+# JetBrains
+.idea/
+
 output.csv
