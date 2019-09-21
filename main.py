@@ -17,7 +17,7 @@ Only keep the Subject.n and Absence.n
 """
 def keep_only_subject(df, index, max_subjects):
     # Compute all indeces except the selected index
-    indeces_to_drop = set(range(0, max_subjects)) - set([index])
+    indeces_to_drop = set(range(0, max_subjects)) - { index }
 
     template_columns = ['Subject', 'Absence']
     columns_to_drop = [
@@ -47,11 +47,12 @@ if __name__ == '__main__':
 
     # read the CSV file into a DataFrame
     df = pandas.read_csv(DATA_FILE)
-    # DataFrame.droplevel
+    # Drop the first unlabeled column
+    df = df.drop(columns=['Unnamed: 0'])
+    # TODO: DataFrame.droplevel?
+
     # Cast all columns with percentage values to floats
     df['Total Absence'] = df['Total Absence'].map(percentage_remap)
-    # TODO: Drop the index (fist) column?
-
 
     total_absence_mean = df['Total Absence'].mean()
     total_absence_median = df['Total Absence'].median()
@@ -59,13 +60,20 @@ if __name__ == '__main__':
     # Mean Total Absence per Class
     print(df.groupby(['Class'])['Total Absence'].mean())
 
-
-    temp_df1 = keep_only_subject(df, 0, MAX_SUBJECTS)
-    temp_df2 = keep_only_subject(df, 1, MAX_SUBJECTS)
-    temp_df3 = keep_only_subject(df, 2, MAX_SUBJECTS)
-    temp_df4 = keep_only_subject(df, 3, MAX_SUBJECTS)
-
-    print(temp_df1.head())
-    print(temp_df2.head())
-    print(temp_df3.head())
-    print(temp_df4.head())
+    # Recreate the data frame, with the new structure
+    # This is needed to make sure that we don't duplicate any rows
+    df = pandas.DataFrame().append([
+        keep_only_subject(df, 0, MAX_SUBJECTS),
+        keep_only_subject(df, 1, MAX_SUBJECTS),
+        keep_only_subject(df, 2, MAX_SUBJECTS),
+        keep_only_subject(df, 3, MAX_SUBJECTS)
+    ], ignore_index=True).drop(columns=['Total Absence'])
+    df = df.dropna()
+    df['Absence'] = df['Absence'].map(percentage_remap)
+    # Mean absence per subject
+    print(df.groupby(['Subject'])['Absence'].mean())
+    df.sort_values(['Subject', 'Class', 'Id']).to_csv(
+        os.path.join(CURR_DIR, 'output.csv'),
+        index=False,
+        encoding='utf-8'
+    )
