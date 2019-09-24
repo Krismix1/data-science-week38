@@ -9,7 +9,7 @@ def percentage_remap(percentage):
 
 
 """
-Only keep the Subject.index and Absence.index
+Only keep the Subject.n and Absence.n
 """
 def keep_only_subject(df, index, max_subjects):
     # Compute all indices except the selected index
@@ -34,8 +34,9 @@ def keep_only_subject(df, index, max_subjects):
     return result
 
 
+
 def autolabel(rects):
-    """Attach a text label above each bar in *rects*, displaying its width."""
+    """Attach a text label above each bar in *rects*, displaying its height."""
     for rect in rects:
         width = rect.get_width()
         plt.annotate('{0:.2f}'.format(float(width)),
